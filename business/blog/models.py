@@ -42,12 +42,12 @@ class BlogPage(Page):
     body = RichTextField(blank=True)
 
     authors = ParentalManyToManyField('blog.Author', blank=True)
-    # tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
+    tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
     #Add the main_image method:
     def main_image(self):
         gallery_item = self.gallery_images.first()
         if gallery_item:
-            return gallery_item
+            return gallery_item.image
         else:
             return None
 
@@ -59,7 +59,7 @@ class BlogPage(Page):
         MultiFieldPanel([
             FieldPanel('date'),
             FieldPanel('authors', widget=forms.CheckboxSelectMultiple),
-            # FieldPanel('tags'),
+            FieldPanel('tags'),
         ], heading="Blog information"),
         FieldPanel('intro'),
         FieldPanel('body'),
@@ -78,7 +78,17 @@ class BlogPageGalleryImage(Orderable):
         FieldPanel('image'),
         FieldPanel('caption'),
     ]
-    
+
+
+class BlogTagIndexPage(Page):
+    def get_context(self, request):
+
+        tag = request.GET.get('tag')
+        blogpages = BlogPage.objects.filter(tags__name=tag)
+
+        context = super().get_context(request)
+        context['blogpages'] = blogpages
+        return context
 
 @register_snippet
 class Author(models.Model):
