@@ -4,42 +4,76 @@
 
 {% block body_class %}{% endblock %}
 
-{% block content %}
-    <h1>{{ page.title }}</h1>
-    <p class="meta">{{ page.date }}</p>
 
-    {% with authors=page.authors.all %}
-        {% if authors %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        
+        <div class="col-sm-8">
+            <h1>{{ page.title }}</h1>
+            <p class="meta">{{ page.date }}</p>
+
+            {% with authors=page.authors.all %}
+            {% if authors %}
             <h3>Posted by:</h3>
             <ul>
                 {% for author in authors %}
-                    <li style="display: inline">
-                        {% image author.author_image fill-40x60 style="vertical-align: middle" %}
-                        {{ author.name }}
-                    </li>
+                <li style="display: inline">
+                    {% image author.author_image fill-40x60 style="vertical-align: middle" %}
+                    {{ author.name }}
+                </li>
                 {% endfor %}
             </ul>
-        {% endif %}
-    {% endwith %}
-    <div class="intro">{{ page.intro }}</div>
-    {{ page.body|richtext }}
-    {% for item in page.galley_images.all%}
-        <div style="float: left; margin: 10px">
-            {% image item.image fill-320x240 %}
-            <p>{{ item.caption }}</p>
-        </div>
-    {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <div class="intro">{{ page.intro }}</div>
+            {{ page.body|richtext }}
+            {% for item in page.galley_images.all%}
+            <div style="float: left; margin: 10px">
+                {% image item.image fill-320x240 %}
+                <p>{{ item.caption }}</p>
+            </div>
+            {% endfor %}
 
-    <p><a href="{{page.get_parent.url }}">Return to blog</a></p>
-    {% with tags=page.tags.all %}
-        {% if tags %}
+            <p><a href="{{page.get_parent.url }}">Return to blog</a></p>
+            {% with tags=page.tags.all %}
+            {% if tags %}
             <div class="tags">
                 <h3>Tags</h3>
                 {% for tag in tags %}
-                    <a href="{% slugurl 'tags' %}?tag={{ tag }}"><button type="button">{{ tag }}</button></a>
+                <a href="{% slugurl 'tags' %}?tag={{ tag }}"><button type="button">{{ tag }}</button></a>
                 {% endfor %}
             </div>
-        {% endif %}
-    {% endwith %}
-{% endblock %}
+            {% endif %}
+            {% endwith %}
+        </div>
 
+        <div class="col-sm-4">
+            <h2>About Me</h2>
+            <h5>Photo of me:</h5>
+            <div class="fakeimg">Fake Image</div>
+            <p>Some text about me in culpa qui officia deserunt mollit anim..</p>
+            <h3 class="mt-4">Some Links</h3>
+            <p>Lorem ipsum dolor sit ame.</p>
+            <ul class="nav nav-pills flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">Active</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">Disabled</a>
+                </li>
+            </ul>
+            <hr class="d-sm-none">
+        </div>
+
+
+    </div>
+</div>
+
+{% endblock %}

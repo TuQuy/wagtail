@@ -4,9 +4,17 @@
 {% load wagtailcore_tags %}
 
 {% block body_class %}template-homepage{% endblock %}
-
-<!-- replace everything below with: -->
 {% block content %}
-    {{ page.body|richtext }}
-    
+<!-- replace everything below with: -->
+
+<style>
+    .icon {
+
+        padding-top: 5px;
+        margin-right: 10px;
+    }
+</style>
+
+<div class="text-center">{{ page.body|richtext }}</div>
+
 {% endblock %}
