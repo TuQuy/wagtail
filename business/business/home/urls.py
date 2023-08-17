@@ -10,17 +10,14 @@ from search import views as search_views
 from rest_framework.routers import DefaultRouter
 
 
-# router = DefaultRouter()
-
+router = DefaultRouter()
 urlpatterns = [
     path("django-admin/", admin.site.urls),
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("search/", search_views.search, name="search"),
-    path('', include('blog.urls')),
-    # path('api/homepage/', include(router.urls)),
-    # path('api/blogpage/', include(router.urls)),
-    
+    path('', include("business.home.urls")),
+    path('api', include(router.urls)),
 ]
 
 
