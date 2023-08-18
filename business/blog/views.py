@@ -1,14 +1,20 @@
+from collections import OrderedDict
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
+import requests
 
 from blog.serializers import BlogPageSerializer
+from blog.serializers import AuthorSerializer
+
 
 from home.models import HomePage
-from rest_framework import viewsets
-from .models import BlogPage
+from rest_framework import viewsets, pagination
+from .models import Author, BlogPage
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework import generics
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 # Create your views here.
 
 def home_viewq(request):
@@ -16,44 +22,62 @@ def home_viewq(request):
     return render(request, 'home_page.html', {'home_page': home_page})
 
 
+# class BlogPageListAPIView(generics.RetrieveAPIView):
+#     queryset = BlogPage.objects.all()
+#     serializer_class = BlogPageSerializer
+
+#     # def get(self, request, *args, **kwargs):
+#     #     try:
+#     #         instance = self.get_object()
+#     #         serializer = self.serializer_class(instance, context={'request': request})
+#     #         return Response(data={'data': serializer.data}, status=status.HTTP_200_OK)
+#     #     except BlogPage.DoesNotExist:
+#     #         return Response(data={}, status=status.HTTP_404_NOT_FOUND)
+
+#     def get_object(self):
+#         queryset = self.get_queryset()
+       
+#         id = self.kwargs.get('id')
+       
+#         if id is not None:
+#             queryset = self.queryset.filter(id=id)
+#         try:
+#             obj = queryset.get()
+#         except BlogPage.DoesNotExist:
+#             raise Http404("No matching Venue found.")
+#         return obj
+    
+#     def get(self, request, *args, **kwargs):
+#         try:
+#             instance = self.get_object()
+#             serializer = self.serializer_class(instance, context={'request': request})
+#             return Response(data={'data': serializer.data},
+#                             status=status.HTTP_200_OK)
+#         except Exception:
+#             return Response(data={},
+#                             status=status.HTTP_404_NOT_FOUND)
+
+class CustomPageNumberPagination(pagination.PageNumberPagination):
+    page_size = 3  # Số items trên mỗi page
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class AuthorViewSet(viewsets.ModelViewSet):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+
 class BlogPageViewSet(viewsets.ModelViewSet):
+    queryset = BlogPage.objects.all().prefetch_related('authors')
+    serializer_class = BlogPageSerializer
+    pagination_class = CustomPageNumberPagination
+
+class BlogPageCreate(generics.CreateAPIView):
     queryset = BlogPage.objects.all()
     serializer_class = BlogPageSerializer
-    
-    def get(self, request, format=None):
-        # Lấy tất cả các bài viết từ model BlogPage
-        blog_posts = BlogPage.objects.all()
 
-        # Tạo một danh sách để chứa dữ liệu bài viết (loại bỏ trường 'authors')
-        data = []
-        for post in blog_posts:
-            post_data = {
-                'date': post.date,
-                'intro': post.intro,
-                'body': post.body,
-                'tags': [tag.name for tag in post.tags.all()],
-                'main_image': post.main_image().url if post.main_image() else None,
-            }
-            data.append(post_data)
-
-        return Response(data)
-    
-    def perform_create(self, serializer):
-        serializer.save()
-    
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()  # Lấy đối tượng bài viết cụ thể dựa trên ID
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-    
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-    
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)
+        serializer.save()
+        return Response(data={'data':serializer.data}, status=status.HTTP_201_CREATED)
+    

@@ -43,6 +43,8 @@ class BlogPage(Page):
 
     authors = ParentalManyToManyField('blog.Author', blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
+
+    
     #Add the main_image method:
     def main_image(self):
         gallery_item = self.gallery_images.first()
@@ -50,7 +52,9 @@ class BlogPage(Page):
             return gallery_item.image
         else:
             return None
-
+    def get_tags_as_strings(self):
+        return [tag.name for tag in self.tags.all()]
+    
     search_fields = Page.search_fields + [
         index.SearchField('intro'),
         index.SearchField('body'),
@@ -79,17 +83,6 @@ class BlogPageGalleryImage(Orderable):
         FieldPanel('caption'),
     ]
 
-
-class BlogTagIndexPage(Page):
-    def get_context(self, request):
-
-        tag = request.GET.get('tag')
-        blogpages = BlogPage.objects.filter(tags__name=tag)
-
-        context = super().get_context(request)
-        context['blogpages'] = blogpages
-        return context
-
 @register_snippet
 class Author(models.Model):
     name = models.CharField(max_length=255)
@@ -107,4 +100,14 @@ class Author(models.Model):
     
     class Meta:
         verbose_name_plural = 'Authors'
+
+class BlogTagIndexPage(Page):
+    def get_context(self, request):
+
+        tag = request.GET.get('tag')
+        blogpages = BlogPage.objects.filter(tags__name=tag)
+
+        context = super().get_context(request)
+        context['blogpages'] = blogpages
+        return context
 

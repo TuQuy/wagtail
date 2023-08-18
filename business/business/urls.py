@@ -18,7 +18,7 @@ urlpatterns = [
     path("documents/", include(wagtaildocs_urls)),
     path("search/", search_views.search, name="search"),
     path('', include('blog.urls')),
-    # path('api/homepage/', include(router.urls)),
+    path('', include('home.urls')),
     # path('api/blogpage/', include(router.urls)),
     
 ]

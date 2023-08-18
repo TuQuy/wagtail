@@ -5,13 +5,14 @@
 
 {% block content %}
 <style>
-    .image{
+    .image {
         width: 1000px;
         padding: 0px;
-        
+
     }
 </style>
-<section>
+
+<div>
 
     {% for post in blogpages %}
     {% with post=post.specific %}
@@ -25,7 +26,7 @@
             <div class="col-md-7 mb-4">
                 <div class="bg-image hover-overlay ripple shadow-2-strong rounded-5" data-mdb-ripple-color="light">
                     <!-- <img src="https://mdbcdn.b-cdn.net/img/new/slides/080.webp" class="img-fluid" /> -->
-                    <a href="#!" class="image">
+                    <a href="{% pageurl post %}" class="image">
                         <div class="mask image" style="background-color: rgba(251, 251, 251, 0.15);"></div>
                         {% with post.main_image as main_image %}
                         {% if main_image %}{% image main_image fill-850x500 %}{% endif %}
@@ -41,15 +42,42 @@
                 <p>{{ post.intro }}</p>
                 </p>
                 <a href="{% pageurl post %}"><button type="button" class="btn btn-primary">Read more</button></a>
-                
+
             </div>
         </div>
+        {% for post in blogpages %}
+        {% with post=post.specific %}
+        <div class="row gx-12">
+            <div class="col-md-3 mb-4">
+                <div class="bg-image hover-overlay ripple shadow-2-strong rounded-5" data-mdb-ripple-color="light">
+                    <h4><a href="{% pageurl post %}">{{ post.title }}</a></h4>
+                    <p>{{ post.intro }}</p>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <div class="bg-image hover-overlay ripple shadow-2-strong rounded-5" data-mdb-ripple-color="light">
+                    <h4><a href="{% pageurl post %}">{{ post.title }}</a></h4>
+                    <p>{{ post.intro }}</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="bg-image hover-overlay ripple shadow-2-strong rounded-5" data-mdb-ripple-color="light">
+                    <h4><a href="{% pageurl post %}">{{ post.title }}</a></h4>
+                    <p>{{ post.intro }}</p>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
     </div>
+
+
     {% endwith %}
     {% endfor %}
+</div>
 
 
-</section>
 
 
 

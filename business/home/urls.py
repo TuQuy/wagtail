@@ -7,6 +7,6 @@ from .views import HomePageViewSet
 router = DefaultRouter()
 router.register(r"homepages", HomePageViewSet)
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/homepage/', include(router.urls)),
     
 ]
