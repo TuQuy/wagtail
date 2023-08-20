@@ -1,5 +1,6 @@
 from django import forms
 from django.db import models
+from django.shortcuts import render
 
 # New imports added for ClusterTaggableManager, TaggedItemBase
 
@@ -12,6 +13,9 @@ from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.search import index
 from wagtail.snippets.models import register_snippet
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from wagtail.contrib.routable_page.models import RoutablePageMixin, route
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 # Create your models here.
 
 
@@ -22,12 +26,45 @@ class BlogIndexPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel('intro')
     ]
-    def get_context(self, request):
-        context = super().get_context(request)
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        
         blogpages = self.get_children().live().order_by('-first_published_at')
+        
+        paginator = Paginator(blogpages, 1)
+        page = request.GET.get("page")
+        try:
+            posts = paginator.page(page)
+        
+        except PageNotAnInteger:
+            posts = paginator.page(1)
+        except EmptyPage:
+            posts = paginator.page(paginator.num_pages)
+        context["posts"] = posts
         context['blogpages'] = blogpages
-        return context
 
+        
+        return context
+    
+    # def get_posts(self):
+    #     return BlogPage.objects.descendant_of(self).live()
+    
+    # @route(r'^tag/(?P<tag>)[-\w]+)/$')
+    # def post_by_tag(self, request, tag):
+    #     self.posts = self.get_posts().filter(tags_slug = tag)
+    #     return self.render(request)
+    
+    # @route(r'^category/(?P<category>[-\w]+)$')
+    # def post_by_category(self, request, category):
+    #     self.posts = self.get_posts().filter(categories_blog_category__slug = category)
+    #     return self.render(request)
+    
+    # @route(r'^$')
+    # def post_list(self, request):
+    #     self.posts = self.get_posts
+    #     return self.render(request)
+
+@register_snippet
 class BlogPageTag(TaggedItemBase):
     content_object = ParentalKey(
         'BlogPage',
@@ -36,11 +73,12 @@ class BlogPageTag(TaggedItemBase):
     )
 
 
+
 class BlogPage(Page):
     date = models.DateField("Post date")
     intro = models.CharField(max_length=250)
     body = RichTextField(blank=True)
-
+    
     authors = ParentalManyToManyField('blog.Author', blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
 
@@ -54,6 +92,17 @@ class BlogPage(Page):
             return None
     def get_tags_as_strings(self):
         return [tag.name for tag in self.tags.all()]
+    
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        blogpages = self.get_children().live().order_by('-first_published_at')
+        for blogpage in blogpages:
+            blogpage.first_image = blogpage.main_image()  # Thay thế dòng này
+            if blogpage.gallery_images.exists():
+                blogpage.first_image = blogpage.gallery_images.first().image
+        context['blogpages'] = blogpages
+        
+        return context
     
     search_fields = Page.search_fields + [
         index.SearchField('intro'),
@@ -111,3 +160,20 @@ class BlogTagIndexPage(Page):
         context['blogpages'] = blogpages
         return context
 
+
+class Comment(models.Model):
+    email = models.EmailField()
+    name = models.CharField(max_length=50)
+    body = models.TextField()
+    post = models.ForeignKey(BlogPage, on_delete=models.CASCADE, related_name='comments')
+    created = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"Comment form {self.name} - {self.body}"
+    
+    
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('name', 'email', 'body')

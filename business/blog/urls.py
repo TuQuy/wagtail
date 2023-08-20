@@ -16,5 +16,6 @@ urlpatterns = [
     # path('api/blogpage/', views.BlogPageViewSet.as_view()),
     path('api/blogpage-create/', views.BlogPageCreate.as_view(), name='create-blog'),
     path('api/', include(router.urls)),
+    # path('<int:pk>/comment', views.comment_view, name='commentview')
     
 ]

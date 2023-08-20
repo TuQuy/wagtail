@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from django.http import Http404, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 import requests
 
 from blog.serializers import BlogPageSerializer
@@ -9,12 +9,15 @@ from blog.serializers import AuthorSerializer
 
 from home.models import HomePage
 from rest_framework import viewsets, pagination
-from .models import Author, BlogPage
+from .models import Author, BlogPage, CommentForm
+# from .models import CommentForm
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import TemplateView
 # Create your views here.
 
 def home_viewq(request):
@@ -81,3 +84,43 @@ class BlogPageCreate(generics.CreateAPIView):
         serializer.save()
         return Response(data={'data':serializer.data}, status=status.HTTP_201_CREATED)
     
+
+# def comment_view(request, pk):
+#     commentform = CommentForm()
+#     if request.method=='POST':
+#         commentform = CommentForm(request.POST)
+#         if commentform.is_valid():
+#             cd = commentform.cleaned_data
+#             print(cd)
+#     return render(request, 'blog/blog_page.html', {'commentform':commentform})
+
+
+
+def submit_comment(request, page_id):
+    page = BlogPage.objects.get(id=page_id)
+
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.post = page
+            comment.save()
+            return redirect('blog_page', page_id=page_id)  # Chuyển hướng đến cùng trang sau khi gửi bình luận thành công
+
+    return redirect('blog_page', page_id=page_id)
+
+
+def blog_index(request):
+    blogpages = BlogPage.objects.live().order_by('-date')
+
+    paginator = Paginator(blogpages, 2)  # Hiển thị 2 bài viết blog trên mỗi trang
+    page = request.GET.get('page')
+
+    try:
+        blogpages = paginator.page(page)
+    except PageNotAnInteger:
+        blogpages = paginator.page(1)
+    except EmptyPage:
+        blogpages = paginator.page(paginator.num_pages)
+
+    return render(request, 'blog/blog_index_page.html', {'blogpages': blogpages})
