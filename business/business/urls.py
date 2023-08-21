@@ -5,6 +5,7 @@ from django.contrib import admin
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
+from home.views import HomePageViewSet
 
 from search import views as search_views
 from rest_framework.routers import DefaultRouter
@@ -19,6 +20,8 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
     path('', include('blog.urls')),
     path('', include('home.urls')),
+    path('home/', include('home.urls')),
+    
     # path('api/blogpage/', include(router.urls)),
     
 ]

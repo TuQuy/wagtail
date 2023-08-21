@@ -16,6 +16,7 @@ from wagtail.snippets.models import register_snippet
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.conf import settings
 # Create your models here.
 
 
@@ -162,18 +163,28 @@ class BlogTagIndexPage(Page):
 
 
 class Comment(models.Model):
+    post = models.ForeignKey(BlogPage, on_delete=models.CASCADE, related_name='comments')
     email = models.EmailField()
     name = models.CharField(max_length=50)
     body = models.TextField()
-    post = models.ForeignKey(BlogPage, on_delete=models.CASCADE, related_name='comments')
     created = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
-    
+    user_author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     def __str__(self):
         return f"Comment form {self.name} - {self.body}"
     
     
 class CommentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.user_author = kwargs.pop('user_author', None)
+        self.post = kwargs.pop('post', None)
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        comment = super().save(commit=False)
+        comment.user_author= self.user_author
+        comment.post = self.post
+        comment.save()
     class Meta:
         model = Comment
-        fields = ('name', 'email', 'body')
+        fields = ["body"]
