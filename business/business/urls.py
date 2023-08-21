@@ -18,9 +18,9 @@ urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("search/", search_views.search, name="search"),
-    path('', include('blog.urls')),
+    path('api/', include('blog.urls')),
     path('', include('home.urls')),
-    path('home/', include('home.urls')),
+    
     
     # path('api/blogpage/', include(router.urls)),
     

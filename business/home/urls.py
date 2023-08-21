@@ -9,5 +9,6 @@ router = DefaultRouter()
 router.register(r"homepages", HomePageViewSet)
 urlpatterns = [
     path('api/homepage/', include(router.urls)),
-    path('', views.home_viewq),
+    path('home/', views.home_viewq),
+    
 ]

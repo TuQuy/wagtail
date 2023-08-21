@@ -151,6 +151,7 @@ class Author(models.Model):
     class Meta:
         verbose_name_plural = 'Authors'
 
+@register_snippet
 class BlogTagIndexPage(Page):
     def get_context(self, request):
 
