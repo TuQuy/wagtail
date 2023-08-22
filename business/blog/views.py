@@ -10,7 +10,7 @@ from blog.serializers import AuthorSerializer
 
 from home.models import HomePage
 from rest_framework import viewsets, pagination
-from .models import Author, BlogPage, CommentForm
+from .models import Author, BlogPage, CommentForm, BlogIndexPage
 
 # from .models import CommentForm
 from rest_framework import status
@@ -25,8 +25,34 @@ from django.http import HttpResponseRedirect
 
 def home_viewq(request):
     # Lấy trang chủ, có thể thay đổi logic lấy trang chủ tùy theo cấu trúc của bạn
-    home_page = HomePage.objects.first() 
-    return render(request, 'home/home_page.html', {'home_page': home_page})
+    
+    home_page = HomePage.objects.first()
+
+    # Lấy các trang blog đã xuất bản và sắp xếp theo ngày đăng
+    blogpages = BlogPage.objects.live().order_by('-first_published_at')
+    
+    # Phân trang các trang blog
+    paginator = Paginator(blogpages, 10)
+    page = request.GET.get('page')
+    
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger:
+        posts = paginator.page(1)
+    except EmptyPage:
+        posts = paginator.page(paginator.num_pages)
+
+    return render(
+        request,
+        'home/home_page.html',
+        {
+            'home_page': home_page,
+            'posts': posts,
+        }
+    )
+    
+    # home_page = HomePage.objects.first() 
+    # return render(request, 'home/home_page.html', {'home_page': home_page})
     # return HttpResponse('Hello world')
 
 

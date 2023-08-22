@@ -9,7 +9,7 @@ from home.views import HomePageViewSet
 
 from search import views as search_views
 from rest_framework.routers import DefaultRouter
-
+from blog import views
 
 # router = DefaultRouter()
 
@@ -20,7 +20,6 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
     path('api/', include('blog.urls')),
     path('', include('home.urls')),
-    
     
     # path('api/blogpage/', include(router.urls)),
     
