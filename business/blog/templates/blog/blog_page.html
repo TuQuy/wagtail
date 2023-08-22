@@ -13,7 +13,7 @@
 
 
 {% block content %}
-
+{% load static %}
 <style>
     body {
         background-color: #eee;
@@ -60,13 +60,23 @@
     <div class="row">
 
         <div class="col-sm-8">
-            <h1>{{ page.title }}</h1>
-            <p class="meta">{{ page.date }}</p>
+            <h1 class="col-12">{{ page.title }}</h1>
+            <p class="meta col-12">{{ page.date }}</p>
+            <div class="col-12">
+                {% for item in page.gallery_images.all %}
+                <div style="float: left; margin: 10px">
+                    {% image item.image fill-1200x700 %}
+                    <p>{{ item.caption }}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+
 
             {% with authors=page.authors.all %}
             {% if authors %}
-            <h3>Posted by:</h3>
-            <ul>
+            <h3 class="col-12">Posted by:</h3>
+            <ul class="col-12">
                 {% for author in authors %}
                 <li style="display: inline">
                     {% image author.author_image fill-40x60 style="vertical-align: middle" %}
@@ -76,20 +86,16 @@
             </ul>
             {% endif %}
             {% endwith %}
-            <div class="intro">{{ page.intro }}</div>
-            {{ page.body|richtext }}
+            <div class="intro col-12">{{ page.intro }}</div>
+            <div class="col-12">{{ page.body|richtext }}</div>
 
-            {% for item in page.gallery_images.all %}
-            <div style="float: left; margin: 10px">
-                {% image item.image fill-320x240 %}
-                <p>{{ item.caption }}</p>
-            </div>
-            {% endfor %}
+
+
 
 
             {% with tags=page.tags.all %}
             {% if tags %}
-            <div class="tags">
+            <div class="tags col-12">
                 <h3>Tags</h3>
                 {% for tag in tags %}
                 <a href="{% slugurl 'tags' %}?tag={{ tag }}"><button type="button">{{ tag }}</button></a>
@@ -167,28 +173,31 @@
 
         </div>
 
-        <p><a href="{{page.get_parent.url }}">Return to blog</a></p>
+        <p><a href="{{page.get_parent.url }}" class="col-12">Return to blog</a></p>
     </div>
 
 
     <!-- Block comment -->
+    <div class="col-sm-8">
 
-    {% for comment in page.comments.all %}
-    <h4><strong>{{ comment.author}}</strong></h4>
-    <h6>
-        <p>{{comment.date}}</p>
-    </h6>
-    <p>{{comment.body|linebreaks}}</p>
-    {% endfor %}
-    {% if user %}
-    <form action="/blog/comment/{{ page.id }}" method="POST">
-        {% csrf_token %}
-        <p><label for="">Bình luận</label></p>
-        <input type="text" name="body">
-        <br>
-        <input type="submit" value="Bình luận">
-    </form>
-    {% endif %}
+        {% for comment in page.comments.all %}
+        <h4><strong>{{ comment.author}}</strong></h4>
+        <h6>
+            <p>{{comment.date}}</p>
+        </h6>
+        <p>{{comment.body|linebreaks}}</p>
+        {% endfor %}
+        {% if user %}
+        <form action="/blog/comment/{{ page.id }}" method="POST">
+            {% csrf_token %}
+            <p><label for="">Bình luận</label></p>
+            <input type="text" name="body">
+            <br>
+            <input type="submit" value="Bình luận">
+        </form>
+        {% endif %}
+    </div>
+
 
 </div>
 

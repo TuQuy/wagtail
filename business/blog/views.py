@@ -10,7 +10,7 @@ from blog.serializers import AuthorSerializer
 
 from home.models import HomePage
 from rest_framework import viewsets, pagination
-from .models import Author, BlogPage, CommentForm, BlogIndexPage
+from .models import Author, BlogPage, BlogTagIndexPage, CommentForm, BlogIndexPage
 
 # from .models import CommentForm
 from rest_framework import status
@@ -50,46 +50,7 @@ def home_viewq(request):
             'posts': posts,
         }
     )
-    
-    # home_page = HomePage.objects.first() 
-    # return render(request, 'home/home_page.html', {'home_page': home_page})
-    # return HttpResponse('Hello world')
 
-
-# class BlogPageListAPIView(generics.RetrieveAPIView):
-#     queryset = BlogPage.objects.all()
-#     serializer_class = BlogPageSerializer
-
-#     # def get(self, request, *args, **kwargs):
-#     #     try:
-#     #         instance = self.get_object()
-#     #         serializer = self.serializer_class(instance, context={'request': request})
-#     #         return Response(data={'data': serializer.data}, status=status.HTTP_200_OK)
-#     #     except BlogPage.DoesNotExist:
-#     #         return Response(data={}, status=status.HTTP_404_NOT_FOUND)
-
-#     def get_object(self):
-#         queryset = self.get_queryset()
-       
-#         id = self.kwargs.get('id')
-       
-#         if id is not None:
-#             queryset = self.queryset.filter(id=id)
-#         try:
-#             obj = queryset.get()
-#         except BlogPage.DoesNotExist:
-#             raise Http404("No matching Venue found.")
-#         return obj
-    
-#     def get(self, request, *args, **kwargs):
-#         try:
-#             instance = self.get_object()
-#             serializer = self.serializer_class(instance, context={'request': request})
-#             return Response(data={'data': serializer.data},
-#                             status=status.HTTP_200_OK)
-#         except Exception:
-#             return Response(data={},
-#                             status=status.HTTP_404_NOT_FOUND)
 
 class CustomPageNumberPagination(pagination.PageNumberPagination):
     page_size = 3  # Số items trên mỗi page
@@ -164,3 +125,31 @@ def blog_index(request):
         blogpages = paginator.page(paginator.num_pages)
 
     return render(request, 'blog/blog_index_page.html', {'blogpages': blogpages})
+
+
+def tag_index(request):
+    tag = request.GET.get('tag')  # Lấy thẻ từ tham số truy vấn
+    print(tag)
+    if tag:
+        # Tìm trang hiển thị bài viết dựa trên tag
+        try:
+            tag_page = BlogTagIndexPage.objects.get(title=tag)
+            # Lấy các bài viết có tag cụ thể
+            blogpages = BlogPage.objects.filter(tags__name=tag)
+            context = {
+                'tag_page': tag_page,
+                'blogpages': blogpages,
+            }
+        except BlogTagIndexPage.DoesNotExist:
+            # Xử lý trường hợp trang tag không tồn tại
+            context = {
+                'tag_page': None,
+                'blogpages': [],
+            }
+    else:
+        context = {
+            'tag_page': None,
+            'blogpages': [],
+        }
+
+    return render(request, 'blog/tag_index_template.html', context)

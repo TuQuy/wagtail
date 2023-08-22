@@ -1,0 +1,19 @@
+{% extends "base.html" %}  
+
+{% block content %}
+  <h1>Tag: {{ tag_page.title }}</h1>
+  
+  {% if blogpages %}
+    <ul>
+      {% for blogpage in blogpages %}
+        <li>
+          <h2><a href="{% pageurl blogpage %}">{{ blogpage.title }}</a></h2>
+          <p>{{ blogpage.intro }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Không có bài viết nào có tag này.</p>
+  {% endif %}
+  
+{% endblock %}

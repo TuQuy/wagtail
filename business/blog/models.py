@@ -110,15 +110,18 @@ class BlogPage(Page):
         index.SearchField('body'),
     ]
     content_panels = Page.content_panels + [
+
+        InlinePanel('gallery_images', label="Gallery images"),
+        FieldPanel('intro'),
+        FieldPanel('body'),
+
+        
         MultiFieldPanel([
             FieldPanel('date'),
             FieldPanel('authors', widget=forms.CheckboxSelectMultiple),
             FieldPanel('tags'),
         ], heading="Blog information"),
-        FieldPanel('intro'),
-        FieldPanel('body'),
-
-        InlinePanel('gallery_images', label="Gallery images"),
+        
     ]
 
 class BlogPageGalleryImage(Orderable):
