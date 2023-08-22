@@ -31,7 +31,7 @@ class BlogIndexPage(Page):
         context = super().get_context(request, *args, **kwargs)
         
         blogpages = self.get_children().live().order_by('-first_published_at')
-        
+        homepage = self.get_parent().live().order_by('-first_published_at')
         paginator = Paginator(blogpages, 1)
         page = request.GET.get("page")
         try:
