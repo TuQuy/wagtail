@@ -17,6 +17,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.conf import settings
+from wagtail.images.models import Image
+from modelcluster.fields import ParentalKey
+
 # Create your models here.
 
 
@@ -59,12 +62,32 @@ class BlogPageTag(TaggedItemBase):
 
 class TopicPage(Page):
     intro = models.CharField(max_length=255, blank=True, null=True)
-
+    
+    def main_image(self):
+        gallery_item = self.gallery_images.first()
+        if gallery_item:
+            return gallery_item.image
+        else:
+            return None
+    
     content_panels = Page.content_panels + [
-        FieldPanel('intro')
+        FieldPanel('intro'),
+        InlinePanel('gallery_images', label="Gallery images"),
     ]
 
     subpage_types = ['BlogIndexPage']
+
+class TopicPageGalleryImage(Orderable):
+    topic_page = ParentalKey(TopicPage, on_delete=models.CASCADE, related_name='gallery_images')
+    image = models.ForeignKey(
+        "wagtailimages.Image", on_delete=models.CASCADE, related_name='+'
+    )
+    caption = models.CharField(blank=True, max_length=250)
+
+    panels = [
+        FieldPanel('image'),
+        FieldPanel('caption'),
+    ]
 
 class BlogPage(Page):
     date = models.DateField("Post date")
