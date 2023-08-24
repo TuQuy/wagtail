@@ -43,79 +43,47 @@
             <div class="row">
                 <div class="col-12">
                     <div class="title-area text-center">
-                        
-                        <h2 class="title" style="color: black;">News & Updates</h2>
+
+                        <h2 class="title" style="color: black;">Highlights</h2>
                     </div>
                 </div>
             </div>
+
             <div class="g-5 mt--20">
                 <div class="swiper mySwiperh1_blog">
                     <div class="swiper-wrapper">
+                        {% for highlight_page in highlight_pages %}
                         <div class="swiper-slide">
                             <div class="single-blog-one-wrapper">
                                 <div class="thumbnail">
-                                    <img src="{% static 'assets/images/blog/01.jpg' %}" alt="business_Blog">
+                                    <img src="{{ highlight_page.main_image }}">
+
                                     <div class="blog-badge">
                                         <span>25.05.2023</span>
                                     </div>
                                 </div>
+
                                 <div class="blog-content">
-                                    <p style="color: black;"><span style="color: black;">Business Solution </span>/ by David Dolean</p>
                                     <a href="blog-details.html">
-                                        <h5 class="title" style="color: black;">The quick settle tips of the new
-                                            ages exist </h5>
+                                        <h5 class="title" style="color: black;">{{ highlight_page.title }}</h5>
                                     </a>
-                                    <a class="rts-read-more btn-primary" href="blog-details.html"><i
+                                    <p style="color: red;"> {{ highlight_page.intro }} </p>
+
+                                    <a class="rts-read-more btn-primary" href="blog-details.html" style="color: red;"><i
                                             class="far fa-arrow-right"></i>Read
                                         More</a>
                                 </div>
                             </div>
                         </div>
-                        <div class="swiper-slide">
-                            <div class="single-blog-one-wrapper">
-                                <div class="thumbnail">
-                                    <img src="{% static 'assets/images/blog/02.jpg' %}" alt="business_Blog">
-                                    <div class="blog-badge">
-                                        <span>25.05.2023</span>
-                                    </div>
-                                </div>
-                                <div class="blog-content">
-                                    <p><span>Business Solution </span>/ by David Dolean</p>
-                                    <a href="blog-details.html">
-                                        <h5 class="title">Old generation settle tips of the new
-                                            ages upps ! </h5>
-                                    </a>
-                                    <a class="rts-read-more btn-primary" href="blog-details.html"><i
-                                            class="far fa-arrow-right"></i>Read
-                                        More</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="single-blog-one-wrapper">
-                                <div class="thumbnail">
-                                    <img src="{% static 'assets/images/blog/03.jpg' %}" alt="business_Blog">
-                                    <div class="blog-badge">
-                                        <span>25.05.2023</span>
-                                    </div>
-                                </div>
-                                <div class="blog-content">
-                                    <p><span>Business Solution </span>/ by David Dolean</p>
-                                    <a href="blog-details.html">
-                                        <h5 class="title">Monkey Form settle tips of the new
-                                            ages end </h5>
-                                    </a>
-                                    <a class="rts-read-more btn-primary" href="blog-details.html"><i
-                                            class="far fa-arrow-right"></i>Read
-                                        More</a>
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
+
+    
 
     <!-- rts about us section start -->
     <div class="rts-about-area rts-section-gap bg-about-sm-shape">

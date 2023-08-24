@@ -13,11 +13,10 @@ router.register(r'blogpages', BlogPageViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('api/blogpage-create/', views.BlogPageCreate.as_view(), name='create-blog'),
+    path('blog/comment/<int:pk>', views.post, name = 'post'),
+    
     # path('api/blogpage/<str:id>/', views.BlogPageListAPIView.as_view()),
     # path('api/blogpage/', views.BlogPageViewSet.as_view()),
-    path('api/blogpage-create/', views.BlogPageCreate.as_view(), name='create-blog'),
-    path('', include(router.urls)),
-    path('blog/comment/<int:pk>', views.post, name = 'post'),
     # path('<int:pk>/comment', views.comment_view, name='commentview')
-    
 ]

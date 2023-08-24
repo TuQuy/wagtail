@@ -20,7 +20,7 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
     path('api/', include('blog.urls')),
     path('', include('home.urls')),
-    
+   
     # path('api/blogpage/', include(router.urls)),
     
 ]

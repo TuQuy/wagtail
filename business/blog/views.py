@@ -10,7 +10,7 @@ from blog.serializers import AuthorSerializer
 
 from home.models import HomePage
 from rest_framework import viewsets, pagination
-from .models import Author, BlogPage, BlogTagIndexPage, CommentForm, BlogIndexPage
+from .models import Author, BlogPage, BlogTagIndexPage, CommentForm, BlogIndexPage, HighLightPage, TopicPage
 
 # from .models import CommentForm
 from rest_framework import status
@@ -25,12 +25,11 @@ from django.http import HttpResponseRedirect
 
 def home_viewq(request):
     # Lấy trang chủ, có thể thay đổi logic lấy trang chủ tùy theo cấu trúc của bạn
-    
     home_page = HomePage.objects.first()
-
     # Lấy các trang blog đã xuất bản và sắp xếp theo ngày đăng
     blogpages = BlogPage.objects.live().order_by('-first_published_at')
-    
+    topic_pages = home_page.get_children().type(TopicPage).live()
+    highlight_pages = HighLightPage.objects.live().order_by('-first_published_at')
     # Phân trang các trang blog
     paginator = Paginator(blogpages, 10)
     page = request.GET.get('page')
@@ -42,12 +41,16 @@ def home_viewq(request):
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
 
+    
+    # print(highlight_images_sets)
     return render(
         request,
         'home/home_page.html',
         {
             'home_page': home_page,
             'posts': posts,
+            'topic_pages': topic_pages,
+            'highlight_pages': highlight_pages,
         }
     )
 
@@ -89,16 +92,7 @@ class BlogPageCreate(generics.CreateAPIView):
 
 
 def post(request, pk):
-    # page = BlogPage.objects.get(id=page_id)
-
-    # if request.method == 'POST':
-    #     comment_form = CommentForm(request.POST)
-    #     if comment_form.is_valid():
-    #         comment = comment_form.save(commit=False)
-    #         comment.post = page
-    #         comment.save()
-    #         return redirect('blog_page', page_id=page_id)  
-    # return redirect('blog_page', page_id=page_id)
+    
     post = get_object_or_404(BlogPage, pk=pk)
     form = CommentForm()
     if request.method == 'POST':
