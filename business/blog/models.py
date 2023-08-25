@@ -157,7 +157,26 @@ class TopicPage(Page):
     intro = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateTimeField(
         blank=True, null=True, default=datetime.datetime.now)
+    
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
 
+        blogpages = self.get_children().live().order_by('-first_published_at')
+        
+        paginator = Paginator(blogpages, 1)
+        page = request.GET.get("page")
+        try:
+            posts = paginator.page(page)
+
+        except PageNotAnInteger:
+            posts = paginator.page(1)
+        except EmptyPage:
+            posts = paginator.page(paginator.num_pages)
+        context["posts"] = posts
+        context['blogpages'] = blogpages
+
+        return context
+    
     def main_image(self):
         gallery_item = self.gallery_images.first()
         if gallery_item:
