@@ -23,6 +23,7 @@ from django.views.generic import TemplateView
 from django.http import HttpResponseRedirect
 # Create your views here.
 
+
 def home_viewq(request):
     # Lấy trang chủ, có thể thay đổi logic lấy trang chủ tùy theo cấu trúc của bạn
     home_page = HomePage.objects.first()
@@ -33,7 +34,7 @@ def home_viewq(request):
     # Phân trang các trang blog
     paginator = Paginator(blogpages, 10)
     page = request.GET.get('page')
-    
+
     try:
         posts = paginator.page(page)
     except PageNotAnInteger:
@@ -41,7 +42,6 @@ def home_viewq(request):
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
 
-    
     # print(highlight_images_sets)
     return render(
         request,
@@ -55,30 +55,94 @@ def home_viewq(request):
     )
 
 
+def read_view(request):
+    topic_page = TopicPage.objects.first()
+    return render(request, 'blog/topic_read.html', {'topic_page': topic_page})
+
+
+def watch_view(request):
+    topic_page = TopicPage.objects.first()
+    return render(request, 'blog/topic_watch.html', {'topic_page': topic_page})
+
+
+def learn_sport_view(request):
+    topic_page = TopicPage.objects.get(title="Learn a sport")
+    topic_pages = TopicPage.objects.live().order_by('-first_published_at')
+    blog_index_page = BlogIndexPage.objects.get(title='Archery')
+    blog_index_pages = BlogIndexPage.objects.live().order_by('-first_published_at')
+    blogpages = BlogPage.objects.live().order_by('-first_published_at')
+    return render(
+        request,
+        'blog/topic_learn_a_sport.html',
+        {
+            'topic_page': topic_page,
+            'topic_pages': topic_pages,
+            'blog_index_page': blog_index_page,
+            'blog_index_pages': blog_index_pages,
+            'blogpages': blogpages,
+            
+        }
+    )
+
+def blog_index_page_view(request):
+    
+    blog_index_pages = BlogIndexPage.objects.live().order_by('-first_published_at')
+    blogpages = BlogPage.objects.live().order_by('-first_published_at')
+    # topic_pages = TopicPage.objects.live().order_by('-first_published_at')
+    return render(
+        request,
+        'blog/blog_index_page.html',
+        {
+            'blog_index_pages': blog_index_pages,
+            'blogpages': blogpages,
+            # 'topic_pages': topic_pages,
+            
+        }
+    )
+
+
+def event_view(request):
+    topic_page = TopicPage.objects.get(title="Events")
+    # topic_pages = TopicPage.objects.live().order_by('-first_published_at')
+    return render(
+        request,
+        'blog/topic_event.html',
+        {
+            'topic_page': topic_page,
+            # 'topic_pages': topic_pages,
+            
+        }
+    )
+
+
 class CustomPageNumberPagination(pagination.PageNumberPagination):
     page_size = 3  # Số items trên mỗi page
     page_size_query_param = 'page_size'
     max_page_size = 100
 
+
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+
 
 class BlogPageViewSet(viewsets.ModelViewSet):
     queryset = BlogPage.objects.all().prefetch_related('authors')
     serializer_class = BlogPageSerializer
     pagination_class = CustomPageNumberPagination
 
+
 class BlogPageCreate(generics.CreateAPIView):
     queryset = BlogPage.objects.all()
     serializer_class = BlogPageSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(data={'data':serializer.data}, status=status.HTTP_201_CREATED)
-    
+        return Response(data={'data': serializer.data}, status=status.HTTP_201_CREATED)
+
 
 # def comment_view(request, pk):
 #     commentform = CommentForm()
@@ -90,9 +154,8 @@ class BlogPageCreate(generics.CreateAPIView):
 #     return render(request, 'blog/blog_page.html', {'commentform':commentform})
 
 
-
 def post(request, pk):
-    
+
     post = get_object_or_404(BlogPage, pk=pk)
     form = CommentForm()
     if request.method == 'POST':
@@ -105,10 +168,12 @@ def post(request, pk):
             return HttpResponseRedirect(url)
     return render(request, 'blog/blog_page.html')
 
+
 def blog_index(request):
     blogpages = BlogPage.objects.live().order_by('-date')
 
-    paginator = Paginator(blogpages, 2)  # Hiển thị 2 bài viết blog trên mỗi trang
+    # Hiển thị 2 bài viết blog trên mỗi trang
+    paginator = Paginator(blogpages, 2)
     page = request.GET.get('page')
 
     try:

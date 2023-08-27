@@ -23,31 +23,41 @@ from wagtail.images.models import Image
 from modelcluster.fields import ParentalKey
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
+from django.utils.text import slugify
+from modelcluster.models import ClusterableModel
+
 # Create your models here.
 
 
 @register_snippet
-class Category(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    slug = models.SlugField(unique=True)
+class Category(ClusterableModel, models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, blank=True, null=True)
 
     panels = [
         FieldPanel('name'),
         FieldPanel('slug'),
     ]
-    sidebar_content_panels = [
-        FieldPanel("")
-    ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
-    
-    def get_count_blog(self):
-        count = BlogPage.objects.filter(blog_pages__category=self).count()
-        return count
+
+    def main_image(self):
+        gallery_item = self.gallery_images.first()
+        if gallery_item and gallery_item.image:
+            rendition = gallery_item.image.get_rendition("original")
+            return rendition.url
+        else:
+            return None
+
     class Meta:
-        verbose_name = _("Category")
-        verbose_name_plural = _("Categories")
+        verbose_name_plural = 'Categories'
 
 
 @register_snippet
@@ -66,16 +76,16 @@ class BlogPage(Page):
 
     authors = ParentalManyToManyField('blog.Author', blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
-    categories = models.ManyToManyField(
-        Category,
-        blank=True
-    )
+    categories = ParentalManyToManyField(
+        'Category', blank=True, related_name='blog_pages')
+
     # Add the main_image method:
 
     def main_image(self):
         gallery_item = self.gallery_images.first()
-        if gallery_item:
-            return gallery_item.image
+        if gallery_item and gallery_item.image:
+            rendition = gallery_item.image.get_rendition("original")
+            return rendition.url
         else:
             return None
 
@@ -111,33 +121,37 @@ class BlogPage(Page):
         ], heading="Blog information"),
     ]
 
-    
 
+class BlogPageGalleryImage(Orderable):
+    page = ParentalKey(BlogPage, on_delete=models.CASCADE,
+                       related_name='gallery_images')
+    image = models.ForeignKey(
+        "wagtailimages.Image", on_delete=models.CASCADE, related_name='+'
+    )
+    caption = models.CharField(blank=True, max_length=250)
 
-class BlogCategoryRelationship(Orderable, models.Model):
-    blog_page = ParentalKey(
-        "BlogPage", on_delete=models.CASCADE, related_name="blog_pages")
-    category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name="categories")
-
-    panels = [FieldPanel("category")]
-
-    class Meta:
-        unique_together = ['blog_page', 'category']
+    panels = [
+        FieldPanel('image'),
+        FieldPanel('caption'),
+    ]
 
 
 class BlogIndexPage(Page):
     intro = RichTextField(blank=True)
 
-    content_panels = Page.content_panels + [
-        FieldPanel('intro')
-    ]
+    def main_image(self):
+        gallery_item = self.gallery_images.first()
+        if gallery_item and gallery_item.image:
+            rendition = gallery_item.image.get_rendition("original")
+            return rendition.url
+        else:
+            return None
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
 
         blogpages = self.get_children().live().order_by('-first_published_at')
-        homepage = self.get_parent().live().order_by('-first_published_at')
+        # homepage = self.get_parent().live().order_by('-first_published_at')
         paginator = Paginator(blogpages, 1)
         page = request.GET.get("page")
         try:
@@ -151,18 +165,37 @@ class BlogIndexPage(Page):
         context['blogpages'] = blogpages
 
         return context
+
+    content_panels = Page.content_panels + [
+        FieldPanel('intro'),
+        InlinePanel('gallery_images', label="Gallery images"),
+    ]
+
+
+class BlogIndexPagePageGalleryImage(Orderable):
+    blog_index_page = ParentalKey(
+        BlogIndexPage, on_delete=models.CASCADE, related_name='gallery_images')
+    image = models.ForeignKey(
+        "wagtailimages.Image", on_delete=models.CASCADE, related_name='+'
+    )
+    caption = models.CharField(blank=True, max_length=250)
+
+    panels = [
+        FieldPanel('image'),
+        FieldPanel('caption'),
+    ]
 
 
 class TopicPage(Page):
     intro = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateTimeField(
         blank=True, null=True, default=datetime.datetime.now)
-    
+
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
 
         blogpages = self.get_children().live().order_by('-first_published_at')
-        
+
         paginator = Paginator(blogpages, 1)
         page = request.GET.get("page")
         try:
@@ -176,11 +209,17 @@ class TopicPage(Page):
         context['blogpages'] = blogpages
 
         return context
-    
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
     def main_image(self):
         gallery_item = self.gallery_images.first()
-        if gallery_item:
-            return gallery_item.image
+        if gallery_item and gallery_item.image:
+            rendition = gallery_item.image.get_rendition("original")
+            return rendition.url
         else:
             return None
 
@@ -232,23 +271,10 @@ class HighLightPage(Page):
         verbose_name = ("Highlight Page")
         verbose_name_plural = ("Highlight Pages")
 
+
 class HighLightPageGalleryImage(Orderable):
     topic_page = ParentalKey(
         HighLightPage, on_delete=models.CASCADE, related_name='gallery_images')
-    image = models.ForeignKey(
-        "wagtailimages.Image", on_delete=models.CASCADE, related_name='+'
-    )
-    caption = models.CharField(blank=True, max_length=250)
-
-    panels = [
-        FieldPanel('image'),
-        FieldPanel('caption'),
-    ]
-
-
-class BlogPageGalleryImage(Orderable):
-    page = ParentalKey(BlogPage, on_delete=models.CASCADE,
-                       related_name='gallery_images')
     image = models.ForeignKey(
         "wagtailimages.Image", on_delete=models.CASCADE, related_name='+'
     )

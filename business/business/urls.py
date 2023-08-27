@@ -20,9 +20,12 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
     path('api/', include('blog.urls')),
     path('', include('home.urls')),
-   
-    # path('api/blogpage/', include(router.urls)),
+    # path('read/', views.read_view, name='read_page'),
+    # path('watch/', views.watch_view, name='watch_page'),
+    # path('learn-sport/', views.learn_sport_view, name='learn_sport_page'),
     
+    # path('api/blogpage/', include(router.urls)),
+
 ]
 
 
@@ -32,7 +35,8 @@ if settings.DEBUG:
 
     # Serve static and media files from development server
     urlpatterns += staticfiles_urlpatterns()
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)
 
 urlpatterns = urlpatterns + [
     # For anything not caught by a more specific rule above, hand over to
